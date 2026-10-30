@@ -58,7 +58,7 @@ public abstract class BaseManageComponentFragment<T> extends Fragment
     View view = layoutInflater.inflate(R.layout.manage_apps, container, false);
 
     mHeaderView = (TextView) view.findViewById(R.id.header_text);
-    mManagedAppsSpinner = (Spinner) view.findViewById(R.id.managed_apps_list);
+    mManagedAppsSpinner = createSpinner(view);
     mManagedAppsSpinner.setAdapter(createSpinnerAdapter());
     mManagedAppsSpinner.setOnItemSelectedListener(
         new AdapterView.OnItemSelectedListener() {
@@ -78,7 +78,6 @@ public abstract class BaseManageComponentFragment<T> extends Fragment
     view.findViewById(R.id.save_app).setOnClickListener(this);
     view.findViewById(R.id.reset_app).setOnClickListener(this);
     view.findViewById(R.id.add_new_row).setOnClickListener(this);
-    view.findViewById(R.id.load_default_button).setOnClickListener(this);
     return view;
   }
 
@@ -86,6 +85,11 @@ public abstract class BaseManageComponentFragment<T> extends Fragment
   public void onActivityCreated(Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     onSpinnerItemSelected(getSpinnerSelectedItem());
+  }
+
+  /** Returns the spinner used to select a component. Defaults to the one in the layout. */
+  protected Spinner createSpinner(View view) {
+    return (Spinner) view.findViewById(R.id.managed_apps_list);
   }
 
   protected abstract SpinnerAdapter createSpinnerAdapter();
@@ -108,8 +112,6 @@ public abstract class BaseManageComponentFragment<T> extends Fragment
       saveConfig();
     } else if (id == R.id.add_new_row) {
       addNewRow();
-    } else if (id == R.id.load_default_button) {
-      loadDefault();
     }
   }
 
@@ -118,8 +120,6 @@ public abstract class BaseManageComponentFragment<T> extends Fragment
   protected abstract void saveConfig();
 
   protected abstract void addNewRow();
-
-  protected abstract void loadDefault();
 
   @SuppressWarnings("unchecked")
   private T getSpinnerSelectedItem() {

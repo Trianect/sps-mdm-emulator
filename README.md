@@ -98,14 +98,48 @@ devices, but anyone can sign an APK with it.
 
 MDM Trianect must be device owner or profile owner before it can set managed configurations.
 
-### Device Owner (ADB)
+### Installation on an emulator (ADB)
 
-On a freshly reset device (no accounts added):
+Device owner can only be set on a device without accounts, so start from a wiped emulator.
 
-```console
-adb install bazel-bin/mdm_trianect.apk
-adb shell dpm set-device-owner com.trianect.mdm/.DeviceAdminReceiver
-```
+1. **Wipe the emulator.** In Android Studio open *Device Manager*, stop the emulator, click **⋮** →
+   **Wipe Data**. Or from the command line:
+
+   ```console
+   emulator -list-avds                     # find the AVD name
+   emulator -avd <AVD_NAME> -wipe-data
+   ```
+
+   (`emulator` lives in `$ANDROID_HOME/emulator/` if it is not on your path.) Do not sign in to a
+   Google account during setup.
+
+2. **Install MDM Trianect.**
+
+   ```console
+   adb install bazel-bin/mdm_trianect.apk
+   ```
+
+3. **Set MDM Trianect as device owner.**
+
+   ```console
+   adb shell dpm set-device-owner com.trianect.mdm/.DeviceAdminReceiver
+   ```
+
+   This fails with *"Not allowed to set the device owner because there are already some accounts
+   on the device"* if an account was added; wipe again in that case. Open MDM Trianect once
+   afterwards so it hides the unneeded apps and becomes the home screen.
+
+4. **Install StrokePointer.** The Play Store is hidden, so install the APK with ADB:
+
+   ```console
+   adb install <path-to>/strokepointer.apk
+   ```
+
+   StrokePointer now appears on the MDM Trianect home screen. Open MDM Trianect, select
+   StrokePointer, press *Load default*, adjust the settings and press *Save*.
+
+The same steps work on a physical device: factory reset it, skip account setup, enable USB
+debugging and continue from step 2.
 
 ## License
 

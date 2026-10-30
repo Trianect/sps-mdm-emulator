@@ -29,13 +29,4 @@
         android:focusable="true"
         tools:ignore="LabelFor,TextFields" />
 
-    <ImageView
-        android:id="@+id/delete_row"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_weight="0"
-        android:src="@android:drawable/ic_delete"
-        tools:ignore="ContentDescription" />
-
 </LinearLayout>

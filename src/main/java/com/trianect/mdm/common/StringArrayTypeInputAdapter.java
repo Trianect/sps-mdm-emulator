@@ -22,7 +22,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import androidx.recyclerview.widget.RecyclerView;
 import com.trianect.mdm.R;
 import java.util.ArrayList;
@@ -51,18 +50,6 @@ public class StringArrayTypeInputAdapter
     }
     holder.textWatcher = createEditTextTextWatcher(holder);
     holder.stringValue.addTextChangedListener(holder.textWatcher);
-    holder.delete.setOnClickListener(
-        new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            int adapterPosition = holder.getAdapterPosition();
-            // make sure the view is not removed yet.
-            if (adapterPosition != -1) {
-              mStringList.remove(adapterPosition);
-              notifyItemRemoved(adapterPosition);
-            }
-          }
-        });
   }
 
   @Override
@@ -81,13 +68,11 @@ public class StringArrayTypeInputAdapter
 
   public class ViewHolder extends RecyclerView.ViewHolder {
     public EditText stringValue;
-    public ImageView delete;
     public TextWatcher textWatcher;
 
     public ViewHolder(View view) {
       super(view);
       stringValue = (EditText) view.findViewById(R.id.string_input);
-      delete = (ImageView) view.findViewById(R.id.delete_row);
     }
   }
 

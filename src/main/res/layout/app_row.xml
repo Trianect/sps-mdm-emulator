@@ -19,12 +19,12 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="horizontal"
-              android:padding="10dip">
+              android:padding="6dip">
 
     <ImageView
             android:id="@+id/pkg_icon"
-            android:layout_width="@android:dimen/app_icon_size"
-            android:layout_height="@android:dimen/app_icon_size"
+            android:layout_width="32dip"
+            android:layout_height="32dip"
             android:scaleType="centerInside"
             android:layout_gravity="center_vertical"/>
 

@@ -19,6 +19,7 @@ package com.trianect.mdm.profilepolicy.apprestrictions;
 import static com.trianect.mdm.common.keyvaluepair.KeyValuePairDialogFragment.RESULT_VALUE;
 
 import android.annotation.TargetApi;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
@@ -31,10 +32,12 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Spinner;
 import android.widget.Toast;
 import com.trianect.mdm.DeviceAdminReceiver;
 import com.trianect.mdm.R;
@@ -51,13 +54,15 @@ import java.util.Set;
 
 /**
  * This fragment shows the installed StrokePointer apps and allows viewing and editing application
- * restrictions for those apps. It also allows loading the default app restrictions for each of
- * those apps.
+ * restrictions for those apps. When an app has no restrictions set, its manifest defaults are
+ * loaded instead.
  */
 public class ManagedConfigurationsFragment extends ManageAppFragment
     implements EditDeleteArrayAdapter.OnEditButtonClickListener<RestrictionEntry> {
   private List<RestrictionEntry> mRestrictionEntries = new ArrayList<>();
   private List<RestrictionEntry> mLastRestrictionEntries;
+  /** Default values from the selected app's manifest, used to mark changed settings. */
+  private Bundle mDefaultRestrictions = new Bundle();
   private DevicePolicyManager mDevicePolicyManager;
   private RestrictionsManager mRestrictionsManager;
   private EditDeleteArrayAdapter<RestrictionEntry> mAppRestrictionsArrayAdapter;
@@ -310,16 +315,46 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
 
   @Override
   protected void addNewRow() {
-    showEditDialog(null);
+    // Adding new keys is not supported; only keys from the app's manifest are edited.
   }
 
   @Override
   public View onCreateView(
       LayoutInflater layoutInflater, ViewGroup container, Bundle savedInstanceState) {
     View view = super.onCreateView(layoutInflater, container, savedInstanceState);
-    View loadDefaultButton = view.findViewById(R.id.load_default_button);
-    loadDefaultButton.setVisibility(View.VISIBLE);
+    view.findViewById(R.id.add_new_row).setVisibility(View.GONE);
     return view;
+  }
+
+  /** Places the app spinner on the right side of the action bar instead of in the layout. */
+  @Override
+  protected Spinner createSpinner(View view) {
+    view.findViewById(R.id.managed_apps_list).setVisibility(View.GONE);
+    ActionBar actionBar = getActivity().getActionBar();
+    Spinner spinner = new Spinner(actionBar.getThemedContext());
+    actionBar.setCustomView(
+        spinner,
+        new ActionBar.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.END | Gravity.CENTER_VERTICAL));
+    actionBar.setDisplayShowCustomEnabled(true);
+    return spinner;
+  }
+
+  /** Hides the action bar spinner while a nested bundle editor is shown on top. */
+  @Override
+  public void onHiddenChanged(boolean hidden) {
+    super.onHiddenChanged(hidden);
+    getActivity().getActionBar().setDisplayShowCustomEnabled(!hidden);
+  }
+
+  @Override
+  public void onDestroyView() {
+    ActionBar actionBar = getActivity().getActionBar();
+    actionBar.setDisplayShowCustomEnabled(false);
+    actionBar.setCustomView(null);
+    super.onDestroyView();
   }
 
   @Override
@@ -343,8 +378,14 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
     }
     String pkgName = appInfo.packageName;
     if (!TextUtils.isEmpty(pkgName)) {
+      mDefaultRestrictions =
+          RestrictionManagerCompat.convertRestrictionsToBundle(getManifestRestrictions(pkgName));
       Bundle bundle = mDevicePolicyManager.getApplicationRestrictions(mAdminComponent, pkgName);
-      loadAppRestrictionsList(convertBundleToRestrictions(bundle));
+      if (bundle.isEmpty()) {
+        loadManifestAppRestrictions(pkgName);
+      } else {
+        loadAppRestrictionsList(convertBundleToRestrictions(bundle));
+      }
       mLastRestrictionEntries = new ArrayList<>(mRestrictionEntries);
     }
   }
@@ -357,17 +398,68 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
 
   private void loadManifestAppRestrictions(String pkgName) {
     if (!TextUtils.isEmpty(pkgName)) {
-      List<RestrictionEntry> manifestRestrictions = null;
-      try {
-        manifestRestrictions = mRestrictionsManager.getManifestRestrictions(pkgName);
-        convertTypeChoiceAndNullToString(manifestRestrictions);
-      } catch (NullPointerException e) {
-        // This means no default restrictions.
-      }
-      if (manifestRestrictions != null) {
-        loadAppRestrictionsList(manifestRestrictions.toArray(new RestrictionEntry[0]));
-      }
+      loadAppRestrictionsList(
+          getManifestRestrictions(pkgName).toArray(new RestrictionEntry[0]));
     }
+  }
+
+  /** Returns the default restrictions declared in the app's manifest, or an empty list. */
+  private List<RestrictionEntry> getManifestRestrictions(String pkgName) {
+    try {
+      List<RestrictionEntry> manifestRestrictions =
+          mRestrictionsManager.getManifestRestrictions(pkgName);
+      if (manifestRestrictions != null) {
+        convertTypeChoiceAndNullToString(manifestRestrictions);
+        return manifestRestrictions;
+      }
+    } catch (NullPointerException e) {
+      // This means no default restrictions.
+    }
+    return new ArrayList<>();
+  }
+
+  /** Whether the entry's value differs from the default declared in the app's manifest. */
+  private boolean isModifiedFromDefault(RestrictionEntry entry) {
+    String key = entry.getKey();
+    if (!mDefaultRestrictions.containsKey(key)) {
+      return false;
+    }
+    Bundle current = RestrictionManagerCompat.convertRestrictionsToBundle(Arrays.asList(entry));
+    return !valuesEqual(current.get(key), mDefaultRestrictions.get(key));
+  }
+
+  private static boolean valuesEqual(Object a, Object b) {
+    if (a instanceof Bundle && b instanceof Bundle) {
+      Bundle bundleA = (Bundle) a;
+      Bundle bundleB = (Bundle) b;
+      if (!bundleA.keySet().equals(bundleB.keySet())) {
+        return false;
+      }
+      for (String key : bundleA.keySet()) {
+        if (!valuesEqual(bundleA.get(key), bundleB.get(key))) {
+          return false;
+        }
+      }
+      return true;
+    }
+    if (a instanceof Object[] && b instanceof Object[]) {
+      Object[] arrayA = (Object[]) a;
+      Object[] arrayB = (Object[]) b;
+      if (arrayA.length != arrayB.length) {
+        return false;
+      }
+      for (int i = 0; i < arrayA.length; i++) {
+        if (!valuesEqual(arrayA[i], arrayB[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    // An empty string and a missing string default are treated as the same value.
+    if ((a == null || a instanceof String) && (b == null || b instanceof String)) {
+      return TextUtils.equals(a == null ? "" : (String) a, b == null ? "" : (String) b);
+    }
+    return a != null && a.equals(b);
   }
 
   /** TODO (b/23378519): Remove this method and add support for type choice and null. */
@@ -401,14 +493,6 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
     mAppRestrictionsArrayAdapter.addAll(mLastRestrictionEntries);
   }
 
-  @Override
-  protected void loadDefault() {
-    ApplicationInfo appInfo = (ApplicationInfo) mManagedAppsSpinner.getSelectedItem();
-    if (appInfo != null) {
-      loadManifestAppRestrictions(appInfo.packageName);
-    }
-  }
-
   @TargetApi(VERSION_CODES.M)
   private RestrictionEntry[] getRestrictionEntries(RestrictionEntry restrictionEntry) {
     return restrictionEntry.getRestrictions();
@@ -428,6 +512,11 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
     @Override
     protected String getDisplayName(RestrictionEntry entry) {
       return entry.getKey();
+    }
+
+    @Override
+    protected boolean isModified(RestrictionEntry entry) {
+      return isModifiedFromDefault(entry);
     }
   }
 }

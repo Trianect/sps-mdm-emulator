@@ -55,16 +55,18 @@ public abstract class EditDeleteArrayAdapter<T> extends ArrayAdapter<T>
       convertView =
           LayoutInflater.from(getContext()).inflate(R.layout.edit_delete_row, parent, false);
       convertView.findViewById(R.id.edit_row).setOnClickListener(this);
-      convertView.findViewById(R.id.delete_row).setOnClickListener(this);
 
       viewHolder = new RowViewHolder<>();
       convertView.setTag(viewHolder);
       viewHolder.restrictionKeyText = (TextView) convertView.findViewById(R.id.restriction_key);
+      viewHolder.modifiedIndicator = convertView.findViewById(R.id.modified_indicator);
     } else {
       viewHolder = (RowViewHolder) convertView.getTag();
     }
     viewHolder.entry = getItem(position);
     viewHolder.restrictionKeyText.setText(getDisplayName(viewHolder.entry));
+    viewHolder.modifiedIndicator.setVisibility(
+        isModified(viewHolder.entry) ? View.VISIBLE : View.GONE);
     viewHolder.entryPosition = position;
     return convertView;
   }
@@ -80,11 +82,6 @@ public abstract class EditDeleteArrayAdapter<T> extends ArrayAdapter<T>
     final T entry = viewHolder.entry;
     if (view.getId() == R.id.edit_row) {
       mOnEditButtonClickListener.onEditButtonClick(entry);
-    } else if (view.getId() == R.id.delete_row) {
-      remove(entry);
-      if (mOnDeleteButtonClickListener != null) {
-        mOnDeleteButtonClickListener.onDeleteButtonClick(entry);
-      }
     }
   }
 
@@ -110,9 +107,15 @@ public abstract class EditDeleteArrayAdapter<T> extends ArrayAdapter<T>
 
   protected abstract String getDisplayName(T entry);
 
+  /** Whether the entry differs from its default value; such rows are marked with a dot. */
+  protected boolean isModified(T entry) {
+    return false;
+  }
+
   private static class RowViewHolder<T> {
     T entry;
     TextView restrictionKeyText;
+    View modifiedIndicator;
     int entryPosition;
   }
 

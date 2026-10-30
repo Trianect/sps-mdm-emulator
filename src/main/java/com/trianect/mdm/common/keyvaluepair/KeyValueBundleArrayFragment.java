@@ -149,9 +149,6 @@ public class KeyValueBundleArrayFragment extends ManageAppFragment
   }
 
   @Override
-  protected void loadDefault() {}
-
-  @Override
   protected BaseAdapter createListAdapter() {
     mAdapter = new BundleEditDeleteArrayAdapter(getActivity(), mBundleList, this, this);
     return mAdapter;

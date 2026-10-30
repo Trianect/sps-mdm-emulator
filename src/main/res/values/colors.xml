@@ -27,4 +27,6 @@
     <!-- Trianect brand colors -->
     <color name="trianect_soft_sand">#F8E7CF</color>
     <color name="trianect_health_green">#014638</color>
+    <color name="trianect_happy_mango">#F7A04F</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
 </resources>

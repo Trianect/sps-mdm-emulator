@@ -137,9 +137,6 @@ public class KeyValueBundleFragment extends ManageAppFragment
     showEditDialog(null);
   }
 
-  @Override
-  protected void loadDefault() {}
-
   private void showEditDialog(final String key) {
     mEditingKey = key;
     int type = DialogType.BOOL_TYPE;

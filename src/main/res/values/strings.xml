@@ -125,8 +125,8 @@
     <!-- Strings for app restrictions -->
     <string name="managed_configurations">Managed configurations</string>
     <string name="no_managed_apps_installed">No StrokePointer app installed.</string>
-    <string name="load_manifest_restrictions">Load manifest restrictions</string>
     <string name="set_app_restrictions_success">Successfully set app restrictions for %s</string>
+    <string name="differs_from_default">Differs from default</string>
     <string name="app_restrictions_info">%1$s - %2$s</string>
     <string name="plus">+</string>
 
