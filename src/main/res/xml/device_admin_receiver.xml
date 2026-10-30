@@ -17,7 +17,6 @@
 
 <device-admin>
     <headless-system-user headless-device-owner-mode="single_user" device-owner-mode="affiliated" />
-    <support-transfer-ownership/>
     <uses-policies>
         <limit-password/>
         <watch-login/>

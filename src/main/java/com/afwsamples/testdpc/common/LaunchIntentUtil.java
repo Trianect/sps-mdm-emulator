@@ -19,7 +19,6 @@ package com.afwsamples.testdpc.common;
 import android.accounts.Account;
 import android.content.Intent;
 import android.os.PersistableBundle;
-import com.afwsamples.testdpc.cosu.EnableCosuActivity;
 
 /**
  * Common utility functions used for retrieving information from the intent that launched TestDPC.
@@ -42,14 +41,6 @@ public class LaunchIntentUtil {
     return launchIntent != null
         && (launchIntent.getExtras() != null)
         && (launchIntent.getExtras().get(EXTRA_IS_SETUP_WIZARD) != null);
-  }
-
-  /**
-   * @returns true if TestDPC was launched as part of a COSU deployment. This is identified by a
-   *     cosu extra in the admin extras.
-   */
-  public static boolean isCosuLaunch(PersistableBundle extras) {
-    return extras != null && (extras.get(EnableCosuActivity.BUNDLE_KEY_COSU_CONFIG) != null);
   }
 
   /**

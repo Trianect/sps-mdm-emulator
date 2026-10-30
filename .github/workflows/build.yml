@@ -1,0 +1,83 @@
+name: Build
+
+on:
+  push:
+    branches: [ "master", "trianect-dpc" ]
+    tags: [ "v*" ]
+    paths-ignore:
+      - "CONTRIB"
+      - "LICENSE"
+      - "PRIVACY"
+      - "README.md"
+  pull_request:
+    branches: [ "master", "trianect-dpc" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write # needed to create a GitHub Release on tag pushes
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" > /dev/null
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.8.4
+        with:
+          bazelisk-cache: true
+          disk-cache: ${{ github.workflow }}
+          repository-cache: true
+
+      # On a version tag (e.g. v1.2.3) stamp the version into the manifest. The version code
+      # is derived from the run number so every release build is an upgrade of the previous one.
+      - name: Set release version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version_name="${GITHUB_REF_NAME#v}"
+          version_code=$((10000 + GITHUB_RUN_NUMBER))
+          sed -i -E \
+            -e "s/android:versionCode=\"[0-9]+\"/android:versionCode=\"${version_code}\"/" \
+            -e "s/android:versionName=\"[^\"]*\"/android:versionName=\"${version_name}\"/" \
+            src/main/AndroidManifest.xml
+          grep -E 'versionCode|versionName' src/main/AndroidManifest.xml
+
+      - name: Build
+        run: bazel build //:trianect_dpc
+
+      - name: Set environments
+        run: |
+          {
+            echo "commit=$(echo ${{ github.sha }} | cut -c-7)"
+            echo "version=v$(grep -o 'android:versionName="[^"]*"' src/main/AndroidManifest.xml | awk -F'"' '{print $2}')"
+          } >> $GITHUB_ENV
+
+      - name: Collect APK
+        run: |
+          mkdir -p dist
+          cp bazel-bin/trianect_dpc.apk "dist/trianect-dpc-${version}.apk"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: trianect-dpc-${{ env.version }}@${{ env.commit }}
+          path: dist/*.apk
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.apk --title "trianect-dpc $GITHUB_REF_NAME" --generate-notes

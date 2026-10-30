@@ -38,7 +38,7 @@ import com.afwsamples.testdpc.AddAccountActivity;
 import com.afwsamples.testdpc.FinalizeActivity;
 import com.afwsamples.testdpc.common.LaunchIntentUtil;
 import com.afwsamples.testdpc.common.Util;
-import com.afwsamples.testdpc.cosu.EnableCosuActivity;
+import com.afwsamples.testdpc.policy.HiddenAppsPolicy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,14 +52,12 @@ import java.util.List;
  *
  * <ul>
  *   <li>self-grant all run-time permissions
- *   <li>enable the launcher activity
+ *   <li>hide preinstalled apps, see {@link HiddenAppsPolicy}
  *   <li>start waiting for first account ready broadcast
  * </ul>
  */
 public class PostProvisioningTask {
   private static final String TAG = "PostProvisioningTask";
-  private static final String SETUP_MANAGEMENT_LAUNCH_ACTIVITY =
-      "com.afwsamples.testdpc.SetupManagementLaunchActivity";
   private static final String POST_PROV_PREFS = "post_prov_prefs";
   private static final String KEY_POST_PROV_DONE = "key_post_prov_done";
 
@@ -93,13 +91,7 @@ public class PostProvisioningTask {
       maybeSetAffiliationIds(extras);
     }
 
-    // Hide the setup launcher when this app is the admin
-    mContext
-        .getPackageManager()
-        .setComponentEnabledSetting(
-            new ComponentName(mContext, SETUP_MANAGEMENT_LAUNCH_ACTIVITY),
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            PackageManager.DONT_KILL_APP);
+    HiddenAppsPolicy.apply(mContext);
 
     return true;
   }
@@ -113,7 +105,6 @@ public class PostProvisioningTask {
     PersistableBundle extras = intent.getParcelableExtra(EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE);
     String packageName = mContext.getPackageName();
     boolean synchronousAuthLaunch = LaunchIntentUtil.isSynchronousAuthLaunch(extras);
-    boolean cosuLaunch = LaunchIntentUtil.isCosuLaunch(extras);
     boolean isProfileOwner = mDevicePolicyManager.isProfileOwnerApp(packageName);
     boolean isDeviceOwner = mDevicePolicyManager.isDeviceOwnerApp(packageName);
 
@@ -122,12 +113,7 @@ public class PostProvisioningTask {
       return null;
     }
 
-    if (cosuLaunch) {
-      launch = new Intent(mContext, EnableCosuActivity.class);
-      launch.putExtra(EXTRA_PROVISIONING_ADMIN_EXTRAS_BUNDLE, extras);
-    } else {
-      launch = new Intent(mContext, FinalizeActivity.class);
-    }
+    launch = new Intent(mContext, FinalizeActivity.class);
 
     if (synchronousAuthLaunch) {
       String accountName = LaunchIntentUtil.getAddedAccountName(extras);
@@ -137,10 +123,9 @@ public class PostProvisioningTask {
     }
 
     // For synchronous auth cases, we can assume accounts are already setup (or will be shortly,
-    // as account migration for Profile Owner is asynchronous). For COSU we don't want to show
-    // the account option to the user, as no accounts should be added for now.
+    // as account migration for Profile Owner is asynchronous).
     // In other cases, offer to add an account to the newly configured device/profile.
-    if (!synchronousAuthLaunch && !cosuLaunch) {
+    if (!synchronousAuthLaunch) {
       AccountManager accountManager = AccountManager.get(mContext);
       Account[] accounts = accountManager.getAccounts();
       if (accounts != null && accounts.length == 0) {

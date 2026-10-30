@@ -45,12 +45,14 @@ import com.afwsamples.testdpc.common.Util;
 import com.afwsamples.testdpc.common.keyvaluepair.KeyValuePairDialogFragment;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * This fragment shows all installed apps and allows viewing and editing application restrictions
- * for those apps. It also allows loading the default app restrictions for each of those apps.
+ * This fragment shows the installed StrokePointer apps and allows viewing and editing application
+ * restrictions for those apps. It also allows loading the default app restrictions for each of
+ * those apps.
  */
 public class ManagedConfigurationsFragment extends ManageAppFragment
     implements EditDeleteArrayAdapter.OnEditButtonClickListener<RestrictionEntry> {
@@ -63,6 +65,11 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
   private ComponentName mAdminComponent;
 
   private static final int RESULT_CODE_EDIT_DIALOG = 1;
+
+  /** Packages whose managed configurations can be edited. */
+  private static final Set<String> MANAGED_PACKAGES =
+      new HashSet<>(
+          Arrays.asList("com.trianect.strokepointer", "com.trianect.strokepointerbeta"));
 
   private static final int[] SUPPORTED_TYPES = {
     KeyValuePairDialogFragment.DialogType.BOOL_TYPE,
@@ -323,7 +330,17 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
   }
 
   @Override
+  protected boolean filterApp(ApplicationInfo info) {
+    return MANAGED_PACKAGES.contains(info.packageName);
+  }
+
+  @Override
   protected void onSpinnerItemSelected(ApplicationInfo appInfo) {
+    if (appInfo == null) {
+      mHeaderView.setVisibility(View.VISIBLE);
+      mHeaderView.setText(R.string.no_managed_apps_installed);
+      return;
+    }
     String pkgName = appInfo.packageName;
     if (!TextUtils.isEmpty(pkgName)) {
       Bundle bundle = mDevicePolicyManager.getApplicationRestrictions(mAdminComponent, pkgName);
@@ -365,7 +382,11 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
 
   @Override
   protected void saveConfig() {
-    String pkgName = ((ApplicationInfo) mManagedAppsSpinner.getSelectedItem()).packageName;
+    ApplicationInfo appInfo = (ApplicationInfo) mManagedAppsSpinner.getSelectedItem();
+    if (appInfo == null) {
+      return;
+    }
+    String pkgName = appInfo.packageName;
     mDevicePolicyManager.setApplicationRestrictions(
         mAdminComponent,
         pkgName,
@@ -382,8 +403,10 @@ public class ManagedConfigurationsFragment extends ManageAppFragment
 
   @Override
   protected void loadDefault() {
-    loadManifestAppRestrictions(
-        ((ApplicationInfo) mManagedAppsSpinner.getSelectedItem()).packageName);
+    ApplicationInfo appInfo = (ApplicationInfo) mManagedAppsSpinner.getSelectedItem();
+    if (appInfo != null) {
+      loadManifestAppRestrictions(appInfo.packageName);
+    }
   }
 
   @TargetApi(VERSION_CODES.M)

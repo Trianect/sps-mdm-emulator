@@ -1,135 +1,101 @@
-Test Device Policy Control (Test DPC) App
-=========================================
+# trianect-dpc
 
-Test DPC is an app designed to help EMMs, ISVs, and OEMs to test their applications and platforms in a Android enterprise managed profile (i.e. work profile). It serves as both a sample Device Policy Controller and a testing application to flex the APIs available for Android enterprise. It supports devices running Android 5.0 Lollipop or later.
+trianect-dpc is a minimal Android Device Policy Controller (DPC) used by Trianect to set the
+managed configurations (app restrictions) of the StrokePointer apps:
 
-See the [documentation](https://developer.android.com/work/index.html) to learn more about Android in the enterprise.
+- `com.trianect.strokepointer`
+- `com.trianect.strokepointerbeta`
 
-## Getting Started
+The app opens directly on the **Managed configurations** screen. Select a StrokePointer app, press
+*Load default* to load the settings the app declares in its manifest (`app_restrictions.xml`), edit
+them and press *Save*.
 
-This sample uses the Bazel build system. To build this project, use the "bazel build testdpc" command.
+## Based on TestDPC
 
-This app can also be found [on the Play store](https://play.google.com/store/apps/details?id=com.afwsamples.testdpc).
+This project is a fork of Google's [Test DPC](https://github.com/googlesamples/android-testdpc),
+based on upstream release **v9.0.16** (commit `e027da9`). TestDPC is a sample DPC that exposes
+nearly every Android enterprise API. We stripped it down to what we need:
+
+- Only the *Managed configurations* screen is kept; all other policy screens, search, kiosk mode,
+  COSU, work-profile cross-app features, ownership transfer and shell commands were removed.
+- The app list only shows the StrokePointer apps (see `MANAGED_PACKAGES` in
+  [ManagedConfigurationsFragment.java](src/main/java/com/afwsamples/testdpc/profilepolicy/apprestrictions/ManagedConfigurationsFragment.java)).
+- The provisioning flow (device owner / work profile setup) is kept, because only the owner app can
+  set managed configurations.
+- If the app is not yet device or profile owner, launching it opens the setup screen.
+- The app is renamed to *trianect-dpc*. The Java package and application ID are still
+  `com.afwsamples.testdpc`, so it cannot be installed next to the original TestDPC.
+
+## Hidden apps
+
+When trianect-dpc is device or profile owner it hides preinstalled apps that are not needed on
+StrokePointer devices: communication (Phone, Messages, Contacts), media & files (Camera, Photos,
+Gallery, Files, Clock, Calendar, Calculator) and Google apps (Chrome, YouTube, Gmail, Maps, Google
+app, Assistant, Drive, Meet). Hidden apps stay installed but are removed from the launcher and
+cannot be started. The Play Store and Settings stay available.
+
+The list is applied after provisioning and every time trianect-dpc is opened. It is defined in
+[HiddenAppsPolicy.java](src/main/java/com/afwsamples/testdpc/policy/HiddenAppsPolicy.java);
+changing it requires a new APK. Removing a package from the list does not unhide it on devices
+where it is already hidden.
+
+## Version
+
+| | |
+|---|---|
+| Version name | `9.0.16` (inherited from TestDPC) |
+| Version code | `9016` |
+| Application ID | `com.afwsamples.testdpc` |
+| Min / target SDK | 21 / 35 |
+| Signing | Bazel debug key (SHA-256 `6379ddb41110a3f38dc9cd0855ffdb099184c749a6ddf64b7f67e4a3da5674d7`) |
+
+The version is defined in [AndroidManifest.xml](src/main/AndroidManifest.xml) and the app name in
+[strings.xml](src/main/res/values/strings.xml). CI overrides the version on release tags (see below).
+
+## Building
+
+The project uses Bazel (version pinned in `.bazelversion`; use [bazelisk](https://github.com/bazelbuild/bazelisk)).
+
+```console
+export ANDROID_HOME=<Path to the Android SDK>   # needs platforms;android-35
+./build.sh                                      # or: bazelisk build //:trianect_dpc
+```
+
+The APK is written to `bazel-bin/trianect_dpc.apk`.
+
+The required [setupdesign library](https://android.googlesource.com/platform/external/setupdesign/+/refs/heads/main)
+is imported and patched dynamically using the command line utility `ed`, which needs to be on the path.
+
+## CI/CD
+
+[.github/workflows/build.yml](.github/workflows/build.yml) runs on GitHub Actions:
+
+- Every push and pull request to `master` or `trianect-dpc` builds the APK and attaches it to the
+  workflow run.
+- Pushing a tag `vX.Y.Z` sets `versionName` to `X.Y.Z` and `versionCode` to `10000 + run number`,
+  and publishes the APK as a GitHub Release:
+
+  ```console
+  git tag v1.0.0 && git push origin v1.0.0
+  ```
+
+APKs are signed with the Bazel debug key, which is the same on every machine, so CI and local
+builds can update each other. Note that this key is public: it is fine for internal and test
+devices, but anyone can sign an APK with it.
 
 ## Provisioning
 
-You can find various kinds of provisioning methods [here](https://developers.google.com/android/work/prov-devices#Key_provisioning_differences_across_android_releases). Let's take a few of them as an example.
+trianect-dpc must be device owner or profile owner before it can set managed configurations.
 
-### AFW# code provisioning (Device Owner M+)
-1. Factory reset your device.
-2. Setup Wi-Fi
-3. When prompted to sign in, enter **afw#testdpc**
-4. Follow onscreen instructions
-  - Choose 'Use for work only' for fully managed setup.
+### Device Owner (ADB)
 
-### QR code provisioning (Device Owner N+ only)
-1. Factory reset your device and tap the welcome screen in setup wizard 6 times.
-1. On Android O or older, the setup wizard prompts the user to connect to the Internet so the setup wizard can download a QR code reader.
-   Android P and newer devices already have the QR code reader available.
-1. Generate a QR code with the content:
-   ```
-    {
-    	"android.app.extra.PROVISIONING_DEVICE_ADMIN_COMPONENT_NAME": "com.afwsamples.testdpc/com.afwsamples.testdpc.DeviceAdminReceiver",
-    	"android.app.extra.PROVISIONING_DEVICE_ADMIN_SIGNATURE_CHECKSUM": "gJD2YwtOiWJHkSMkkIfLRlj-quNqG1fb6v100QmzM9w=",
-    	"android.app.extra.PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION": "https://testdpc-latest-apk.appspot.com"
-    }
-   ```
-   or use this pre-made QR code:  
-   ![testdpc_provisioning](qrcode.png)
-1. Scan the QR code and follow onscreen instructions
+On a freshly reset device (no accounts added):
 
-#### Note
-
-If using this QR code your device is stuck on the configuring screen, it may due to a problem connecting to the `appspot.com` domain.
-
-In these cases you can use the [latest release](https://github.com/googlesamples/android-testdpc/releases/latest) available on github.
-You can also upload this version on your own server and use that as your download location.
-
-Replace the link used for `PROVISIONING_DEVICE_ADMIN_PACKAGE_DOWNLOAD_LOCATION` with a link to your APK. After that, regenerate the QR code.
-
-### ADB command
-
-#### Device Owner (DO)
-
-*   Run the `adb` command:
-
-    ```console
-    adb shell dpm set-device-owner com.afwsamples.testdpc/.DeviceAdminReceiver
-    ```
-
-#### Profile Owner - Personal device (PO - BYOD)
-
-*   Create a managed profile by launching the “Set up TestDPC” app
-*   Skip adding an account at the end of the flow
-
-#### Profile Owner - Corporate-owned device (PO - COPE)
-
-*   Create a managed profile by launching the “Set up TestDPC” app
-*   Skip adding an account at the end of the flow
-*   Run the `adb` command:
-
-    ```console
-    adb shell dpm mark-profile-owner-on-organization-owned-device --user 10 com.afwsamples.testdpc/.DeviceAdminReceiver`
-    ```
-
-#### TestDPC as DM role holder
-
-TestDPC v9.0.5+ can be setup as Device Management Role Holder.
-
-*   Running the following `adb` commands:
-
-    ```console
-    adb shell cmd role set-bypassing-role-qualification true
-    adb shell cmd role add-role-holder android.app.role.DEVICE_POLICY_MANAGEMENT com.afwsamples.testdpc
-    ```
-
-    Note: unlike DO/PO, this change is not persisted so TestDPC needs to be
-    marked as role holder again if the device reboots.
-
-## Android Studio import
-
-To import this repository in Android Studio, you need to use the 
-[Bazel for Android Studio](https://plugins.jetbrains.com/plugin/9185-bazel-for-android-studio)
-Plugin.
-
-When importing the project you have to select the folder containing the Bazel's
-`BUILD` file. When prompted to select a "project view", you can choose the
-option "Copy external" and choose the `scripts/ij.bazelproject` available in
-this repository.
-
-Once Bazel has complete the import operation and the first sync of the
-project, you can create a "Run Configuration".
-Select "Bazel Command" as Configuration type and add `//:testdpc` as
-"target expression".
-
-You can now run the project from inside Android Studio.
-
-## Building with Bazel
-
-The repository includes a `build.sh` script to build the application. The required
-[setupdesign library](https://android.googlesource.com/platform/external/setupdesign/+/refs/heads/main)
-is now imported and patched dynamically using the command line utility `ed`. This needs to be
-available on the path to successfully build the project.
-
-### `ANDROID_HOME` environment setup
-
-Bazel requires that you set the `ANDROID_HOME` environment variable to the path of your Android SDK.
-As an example, you can add to your `.bashrc` on linux:
+```console
+adb install bazel-bin/trianect_dpc.apk
+adb shell dpm set-device-owner com.afwsamples.testdpc/.DeviceAdminReceiver
 ```
-export ANDROID_HOME=<Path to the Android SDK>
-```
-
-## Support
-
-If you've found an error in this sample, please file an issue:
-https://github.com/googlesamples/android-testdpc/issues
-
-Patches are encouraged, and may be submitted by forking this project and submitting a pull request through GitHub.
 
 ## License
 
-Licensed under the Apache 2.0 license. See the LICENSE file for details.
-
-## How to make contributions?
-
-Please read and follow the steps in the CONTRIB file.
+Licensed under the Apache 2.0 license, like the original TestDPC. See the LICENSE file for details.

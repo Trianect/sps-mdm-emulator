@@ -30,6 +30,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.ClipData;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -294,13 +295,14 @@ public class SetupManagementFragment extends Fragment
 
   @TargetApi(VERSION_CODES.O)
   private void passAffiliationIds(Intent intent, PersistableBundle adminExtras) {
-    DevicePolicyManagerGateway dpmg = new DevicePolicyManagerGatewayImpl(getActivity());
-    Set<String> ids = dpmg.getAffiliationIds();
+    DevicePolicyManager dpm = getActivity().getSystemService(DevicePolicyManager.class);
+    ComponentName admin = DeviceAdminReceiver.getComponentName(getActivity());
+    Set<String> ids = dpm.getAffiliationIds(admin);
     String affiliationId = null;
     if (ids.size() == 0) {
       SecureRandom randomGenerator = new SecureRandom();
       affiliationId = Integer.toString(randomGenerator.nextInt(1000000));
-      dpmg.setAffiliationIds(Collections.singleton(affiliationId));
+      dpm.setAffiliationIds(admin, Collections.singleton(affiliationId));
     } else {
       affiliationId = ids.iterator().next();
     }
