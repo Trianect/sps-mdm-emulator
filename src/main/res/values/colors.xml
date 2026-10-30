@@ -24,4 +24,7 @@
     <color name="primary">#ff3367d6</color>
     <color name="accent">#ff3367d6</color>
     <color name="managed_provisioning_color">#4285f4</color>
+    <!-- Trianect brand colors -->
+    <color name="trianect_soft_sand">#F8E7CF</color>
+    <color name="trianect_health_green">#014638</color>
 </resources>

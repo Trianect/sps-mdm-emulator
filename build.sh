@@ -3,4 +3,4 @@
 # Fail on any error.
 set -e
 
-bazel build trianect_dpc
+bazel build mdm_trianect

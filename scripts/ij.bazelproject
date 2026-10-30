@@ -5,7 +5,7 @@ directories:
 derive_targets_from_directories: false
 
 targets:
-  trianect_dpc
+  mdm_trianect
 
 additional_languages:
   # kotlin

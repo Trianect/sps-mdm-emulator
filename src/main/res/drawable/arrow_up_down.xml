@@ -15,10 +15,10 @@
  limitations under the License.
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:testdpc="http://schemas.android.com/apk/res-auto">
+          xmlns:app="http://schemas.android.com/apk/res-auto">
     <item android:drawable="@drawable/arrow_down"
-          testdpc:state_expanded="false" />
-    <item testdpc:state_expanded="true">
+          app:state_expanded="false" />
+    <item app:state_expanded="true">
         <rotate android:drawable="@drawable/arrow_down"
                 android:fromDegrees="180"
                 android:toDegrees="0"

@@ -16,8 +16,8 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-    <string name="app_name">trianect-dpc</string>
-    <string name="setup_app_name">Set up trianect-dpc</string>
+    <string name="app_name">MDM Trianect</string>
+    <string name="setup_app_name">Set up MDM Trianect</string>
     <string name="cancel">Cancel</string>
     <string name="set_up_managed_profile">Set up managed profile</string>
     <string name="set_up_device_owner">Set up device owner</string>
@@ -25,8 +25,8 @@
     <string name="setup_management_message">This app is currently not the owner of this device or
         profile. Please select an option below and tap Next to set up appropriate management by this app.</string>
     <string name="setup_management_message_for_do">This app is currently set as device owner. Please select the options below and tap Next to create a profile managed by the same app</string>
-    <string name="provisioning_not_possible">trianect-dpc isn\'t currently allowed to be set up as the profile or device owner.</string>
-    <string name="provisioning_not_possible_for_do">trianect-dpc isn\'t currently allowed to create a managed profile.</string>
+    <string name="provisioning_not_possible">MDM Trianect isn\'t currently allowed to be set up as the profile or device owner.</string>
+    <string name="provisioning_not_possible_for_do">MDM Trianect isn\'t currently allowed to create a managed profile.</string>
     <string name="exit">Exit</string>
     <string name="managed_account_message">Added account that requires management:</string>
     <string name="managed_account_complete_message">Added account that is now managed:</string>
@@ -72,8 +72,8 @@
 
 
     <!-- Strings for provisioning disclaimers-->
-    <string name="default_disclaimer_company_name">trianect-dpc company</string>
-    <string name="default_disclaimer_emm_name">trianect-dpc EMM</string>
+    <string name="default_disclaimer_company_name">MDM Trianect company</string>
+    <string name="default_disclaimer_emm_name">MDM Trianect EMM</string>
 
     <!-- Strings for device owner management -->
 

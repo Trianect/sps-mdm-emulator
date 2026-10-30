@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ "master", "trianect-dpc" ]
+    branches: [ "master", "mdm-trianect" ]
     tags: [ "v*" ]
     paths-ignore:
       - "CONTRIB"
@@ -10,7 +10,7 @@ on:
       - "PRIVACY"
       - "README.md"
   pull_request:
-    branches: [ "master", "trianect-dpc" ]
+    branches: [ "master", "mdm-trianect" ]
   workflow_dispatch:
 
 permissions:
@@ -56,7 +56,7 @@ jobs:
           grep -E 'versionCode|versionName' src/main/AndroidManifest.xml
 
       - name: Build
-        run: bazel build //:trianect_dpc
+        run: bazel build //:mdm_trianect
 
       - name: Set environments
         run: |
@@ -68,16 +68,16 @@ jobs:
       - name: Collect APK
         run: |
           mkdir -p dist
-          cp bazel-bin/trianect_dpc.apk "dist/trianect-dpc-${version}.apk"
+          cp bazel-bin/mdm_trianect.apk "dist/mdm-trianect-${version}.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: trianect-dpc-${{ env.version }}@${{ env.commit }}
+          name: mdm-trianect-${{ env.version }}@${{ env.commit }}
           path: dist/*.apk
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/*.apk --title "trianect-dpc $GITHUB_REF_NAME" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" dist/*.apk --title "MDM Trianect $GITHUB_REF_NAME" --generate-notes

@@ -1,4 +1,4 @@
-workspace(name = "testdpc")
+workspace(name = "mdm_trianect")
 
 android_sdk_repository(
     name = "androidsdk",

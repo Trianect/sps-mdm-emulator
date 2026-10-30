@@ -17,7 +17,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-          package="com.afwsamples.testdpc">
+          package="com.trianect.mdm">
     <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="35"/>
     <application
         android:testOnly="true">

@@ -10,7 +10,7 @@ MANIFEST = "src/main/AndroidManifest.xml"
 
 MANIFEST_DEBUG = "src/main/AndroidManifestDebug.xml"
 
-PACKAGE = "com.afwsamples.testdpc"
+PACKAGE = "com.trianect.mdm"
 
 android_library(
     name = "androidx_deps",
@@ -48,32 +48,32 @@ android_library(
 )
 
 android_binary(
-    name = "trianect_dpc",
+    name = "mdm_trianect",
     custom_package = PACKAGE,
     dexopts = [
         "--force-jumbo",
     ],
     manifest = MANIFEST,
     deps = [
-        ":trianect_dpc_lib",
+        ":mdm_trianect_lib",
     ],
 )
 
 android_binary(
-    name = "trianect_dpc_debug",
+    name = "mdm_trianect_debug",
     custom_package = PACKAGE,
     dexopts = [
         "--force-jumbo",
     ],
     manifest = MANIFEST,
     deps = [
-        ":trianect_dpc_lib",
-        ":trianect_dpc_lib_debug",
+        ":mdm_trianect_lib",
+        ":mdm_trianect_lib_debug",
     ],
 )
 
 android_library(
-    name = "trianect_dpc_lib",
+    name = "mdm_trianect_lib",
     srcs = glob(["src/main/java/**/*.java"]),
     custom_package = PACKAGE,
     manifest = MANIFEST,
@@ -86,7 +86,7 @@ android_library(
 )
 
 android_library(
-    name = "trianect_dpc_lib_debug",
+    name = "mdm_trianect_lib_debug",
     custom_package = PACKAGE,
     manifest = MANIFEST_DEBUG,
 )
