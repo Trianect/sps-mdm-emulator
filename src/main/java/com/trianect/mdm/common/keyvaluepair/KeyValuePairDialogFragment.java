@@ -58,6 +58,7 @@ public class KeyValuePairDialogFragment extends DialogFragment {
   static final String ARG_CAN_EDIT_KEY = "can_edit_key";
   static final String ARG_KEY = "key";
   static final String ARG_INITIAL_VALUE = "initial_value";
+  static final String ARG_DEFAULT_VALUE = "default_value";
   static final String ARG_SUPPORTED_TYPE = "supported_type";
   static final String ARG_APP_NAME = "app_name";
 
@@ -105,37 +106,58 @@ public class KeyValuePairDialogFragment extends DialogFragment {
       Object value,
       int[] supportedType,
       String appName) {
+    return newInstance(dialogType, canEditKey, key, value, supportedType, appName, null);
+  }
+
+  /**
+   * Like {@link #newInstance(int, boolean, String, Object, int[], String)}, but if defaultValue is
+   * not null the dialog also offers to reset the value to it.
+   */
+  public static KeyValuePairDialogFragment newInstance(
+      int dialogType,
+      boolean canEditKey,
+      String key,
+      Object value,
+      int[] supportedType,
+      String appName,
+      Object defaultValue) {
     KeyValuePairDialogFragment fragment = new KeyValuePairDialogFragment();
     Bundle argument = new Bundle();
     argument.putInt(ARG_DIALOG_TYPE, dialogType);
     argument.putBoolean(ARG_CAN_EDIT_KEY, canEditKey);
     argument.putString(ARG_KEY, key);
-    if (value != null) {
-      switch (dialogType) {
-        case DialogType.BOOL_TYPE:
-          argument.putBoolean(ARG_INITIAL_VALUE, (boolean) value);
-          break;
-        case DialogType.INT_TYPE:
-          argument.putInt(ARG_INITIAL_VALUE, (int) value);
-          break;
-        case DialogType.STRING_TYPE:
-          argument.putString(ARG_INITIAL_VALUE, (String) value);
-          break;
-        case DialogType.STRING_ARRAY_TYPE:
-          argument.putStringArray(ARG_INITIAL_VALUE, (String[]) value);
-          break;
-        case DialogType.BUNDLE_TYPE:
-          argument.putBundle(ARG_INITIAL_VALUE, (Bundle) value);
-          break;
-        case DialogType.BUNDLE_ARRAY_TYPE:
-          argument.putParcelableArray(ARG_INITIAL_VALUE, (Bundle[]) value);
-          break;
-      }
-    }
+    putValue(argument, ARG_INITIAL_VALUE, dialogType, value);
+    putValue(argument, ARG_DEFAULT_VALUE, dialogType, defaultValue);
     argument.putIntArray(ARG_SUPPORTED_TYPE, supportedType);
     argument.putString(ARG_APP_NAME, appName);
     fragment.setArguments(argument);
     return fragment;
+  }
+
+  private static void putValue(Bundle bundle, String key, int dialogType, Object value) {
+    if (value == null) {
+      return;
+    }
+    switch (dialogType) {
+      case DialogType.BOOL_TYPE:
+        bundle.putBoolean(key, (boolean) value);
+        break;
+      case DialogType.INT_TYPE:
+        bundle.putInt(key, (int) value);
+        break;
+      case DialogType.STRING_TYPE:
+        bundle.putString(key, (String) value);
+        break;
+      case DialogType.STRING_ARRAY_TYPE:
+        bundle.putStringArray(key, (String[]) value);
+        break;
+      case DialogType.BUNDLE_TYPE:
+        bundle.putBundle(key, (Bundle) value);
+        break;
+      case DialogType.BUNDLE_ARRAY_TYPE:
+        bundle.putParcelableArray(key, (Bundle[]) value);
+        break;
+    }
   }
 
   @SuppressLint("InflateParams")
@@ -172,17 +194,38 @@ public class KeyValuePairDialogFragment extends DialogFragment {
   }
 
   private AlertDialog createAlertDialog(View view) {
-    final AlertDialog dialog =
+    final boolean hasDefault = getArguments().containsKey(ARG_DEFAULT_VALUE);
+    AlertDialog.Builder builder =
         new AlertDialog.Builder(getActivity())
             .setView(view)
             .setCancelable(true)
             .setPositiveButton(R.string.restriction_save_label, null)
-            .setNegativeButton(R.string.restriction_cancel_label, null)
-            .create();
+            .setNegativeButton(R.string.restriction_cancel_label, null);
+    if (hasDefault) {
+      builder.setNeutralButton(R.string.restriction_reset_to_default_label, null);
+    }
+    final AlertDialog dialog = builder.create();
     dialog.setOnShowListener(
         new DialogInterface.OnShowListener() {
           @Override
           public void onShow(DialogInterface dialogInterface) {
+            if (hasDefault) {
+              dialog
+                  .getButton(AlertDialog.BUTTON_NEUTRAL)
+                  .setOnClickListener(
+                      new OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                          Intent result = new Intent();
+                          result.putExtra(RESULT_TYPE, mDialogType);
+                          result.putExtra(RESULT_KEY, mKeyView.getText().toString());
+                          putDefaultValueToResultIntent(result);
+                          getTargetFragment()
+                              .onActivityResult(getTargetRequestCode(), Activity.RESULT_OK, result);
+                          dialog.dismiss();
+                        }
+                      });
+            }
             dialog
                 .getButton(AlertDialog.BUTTON_POSITIVE)
                 .setOnClickListener(
@@ -210,6 +253,30 @@ public class KeyValuePairDialogFragment extends DialogFragment {
           }
         });
     return dialog;
+  }
+
+  private void putDefaultValueToResultIntent(Intent result) {
+    Bundle arguments = getArguments();
+    switch (mDialogType) {
+      case DialogType.BOOL_TYPE:
+        result.putExtra(RESULT_VALUE, arguments.getBoolean(ARG_DEFAULT_VALUE));
+        break;
+      case DialogType.INT_TYPE:
+        result.putExtra(RESULT_VALUE, arguments.getInt(ARG_DEFAULT_VALUE));
+        break;
+      case DialogType.STRING_TYPE:
+        result.putExtra(RESULT_VALUE, arguments.getString(ARG_DEFAULT_VALUE));
+        break;
+      case DialogType.STRING_ARRAY_TYPE:
+        result.putExtra(RESULT_VALUE, arguments.getStringArray(ARG_DEFAULT_VALUE));
+        break;
+      case DialogType.BUNDLE_TYPE:
+        result.putExtra(RESULT_VALUE, arguments.getBundle(ARG_DEFAULT_VALUE));
+        break;
+      case DialogType.BUNDLE_ARRAY_TYPE:
+        result.putExtra(RESULT_VALUE, arguments.getParcelableArray(ARG_DEFAULT_VALUE));
+        break;
+    }
   }
 
   private boolean putValueFromUiToResultIntent(Intent result) {

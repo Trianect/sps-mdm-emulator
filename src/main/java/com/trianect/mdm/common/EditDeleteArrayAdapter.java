@@ -59,14 +59,11 @@ public abstract class EditDeleteArrayAdapter<T> extends ArrayAdapter<T>
       viewHolder = new RowViewHolder<>();
       convertView.setTag(viewHolder);
       viewHolder.restrictionKeyText = (TextView) convertView.findViewById(R.id.restriction_key);
-      viewHolder.modifiedIndicator = convertView.findViewById(R.id.modified_indicator);
     } else {
       viewHolder = (RowViewHolder) convertView.getTag();
     }
     viewHolder.entry = getItem(position);
     viewHolder.restrictionKeyText.setText(getDisplayName(viewHolder.entry));
-    viewHolder.modifiedIndicator.setVisibility(
-        isModified(viewHolder.entry) ? View.VISIBLE : View.GONE);
     viewHolder.entryPosition = position;
     return convertView;
   }
@@ -107,15 +104,9 @@ public abstract class EditDeleteArrayAdapter<T> extends ArrayAdapter<T>
 
   protected abstract String getDisplayName(T entry);
 
-  /** Whether the entry differs from its default value; such rows are marked with a dot. */
-  protected boolean isModified(T entry) {
-    return false;
-  }
-
   private static class RowViewHolder<T> {
     T entry;
     TextView restrictionKeyText;
-    View modifiedIndicator;
     int entryPosition;
   }
 

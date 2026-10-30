@@ -23,22 +23,8 @@
             android:id="@+id/restriction_key"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_gravity="center"/>
-
-    <ImageView
-            android:id="@+id/modified_indicator"
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_marginStart="6dp"
-            android:layout_gravity="center"
-            android:src="@drawable/modified_dot"
-            android:contentDescription="@string/differs_from_default"
-            android:visibility="gone"/>
-
-    <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
 
     <ImageView
             android:id="@+id/edit_row"

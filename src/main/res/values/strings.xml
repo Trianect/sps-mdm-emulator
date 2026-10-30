@@ -53,6 +53,7 @@
     <string name="manage_apps">Manage applications</string>
     <string name="reset">Reset</string>
     <string name="save">Save</string>
+    <string name="save_and_restart_sps">Save + restart SPS</string>
     <string name="migration_not_supported">Unable to migrate account into profile</string>
     <string name="provisioning_not_supported">Device provisioning is not enabled</string>
     <string name="provisioning_failed_or_cancelled">Provisioning failed or cancelled</string>
@@ -127,6 +128,8 @@
     <string name="no_managed_apps_installed">No StrokePointer app installed.</string>
     <string name="set_app_restrictions_success">Successfully set app restrictions for %s</string>
     <string name="differs_from_default">Differs from default</string>
+    <string name="restriction_reset_to_default_label">Reset to default</string>
+    <string name="default_option_label">%s (default)</string>
     <string name="app_restrictions_info">%1$s - %2$s</string>
     <string name="plus">+</string>
 
