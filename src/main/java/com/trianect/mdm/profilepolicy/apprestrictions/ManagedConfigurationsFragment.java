@@ -83,12 +83,12 @@ public class ManagedConfigurationsFragment extends ManageAppFragment {
   private static final int RESULT_CODE_EDIT_DIALOG = 1;
 
   /** Packages whose managed configurations can be edited. */
-  private static final Set<String> MANAGED_PACKAGES =
+  static final Set<String> MANAGED_PACKAGES =
       new HashSet<>(
           Arrays.asList("com.trianect.strokepointer", "com.trianect.strokepointerbeta"));
 
   /** Settings that are always set to a fixed value and cannot be edited. */
-  private static final Map<String, String> FIXED_VALUES = new HashMap<>();
+  static final Map<String, String> FIXED_VALUES = new HashMap<>();
 
   static {
     FIXED_VALUES.put("MdmDeviceSerial", "999999999");
@@ -555,7 +555,7 @@ public class ManagedConfigurationsFragment extends ManageAppFragment {
     updateSaveButton();
     showToast(getString(R.string.set_app_restrictions_success, pkgName));
     if (changed) {
-      restartApp(pkgName);
+      restartApp(getActivity(), mDevicePolicyManager, mAdminComponent, pkgName);
     }
   }
 
@@ -563,20 +563,21 @@ public class ManagedConfigurationsFragment extends ManageAppFragment {
    * Stops the app so it reads the new configuration on its next start, then launches it. Hiding an
    * app kills its processes; it is unhidden right away.
    */
-  private void restartApp(String pkgName) {
+  static void restartApp(
+      Context context, DevicePolicyManager dpm, ComponentName admin, String pkgName) {
     try {
-      mDevicePolicyManager.setApplicationHidden(mAdminComponent, pkgName, true);
-      mDevicePolicyManager.setApplicationHidden(mAdminComponent, pkgName, false);
+      dpm.setApplicationHidden(admin, pkgName, true);
+      dpm.setApplicationHidden(admin, pkgName, false);
     } catch (SecurityException e) {
       Log.w(TAG, "Unable to stop " + pkgName, e);
     }
-    Intent launchIntent = getActivity().getPackageManager().getLaunchIntentForPackage(pkgName);
+    Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(pkgName);
     if (launchIntent == null) {
       Log.w(TAG, "No launch intent for " + pkgName);
       return;
     }
     launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-    startActivity(launchIntent);
+    context.startActivity(launchIntent);
   }
 
   /** Replaces all shown values by the app's manifest defaults. They are applied on save. */

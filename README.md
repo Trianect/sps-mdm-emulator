@@ -26,6 +26,31 @@ nearly every Android enterprise API. We stripped it down to what we need:
 - The app is renamed to *MDM Trianect*, with Java package and application ID `com.trianect.mdm`,
   so it can be installed next to the original TestDPC.
 
+## Setting managed configurations from adb
+
+For screenshot automation and testing, managed configuration values can be set with a broadcast,
+without using the UI. Only the adb shell can send it (the receiver requires
+`android.permission.DUMP`), and MDM Trianect must be device or profile owner.
+
+```bash
+adb shell am broadcast -a com.trianect.mdm.action.SET_MANAGED_CONFIGURATION \
+    -n com.trianect.mdm/.profilepolicy.apprestrictions.SetManagedConfigurationReceiver \
+    --es package com.trianect.strokepointer \
+    --es MdmLanguage nl --ez MdmResearchMode true
+```
+
+- `package` (required): `com.trianect.strokepointer` or `com.trianect.strokepointerbeta`.
+- Every other extra is a configuration key. The given keys are changed; all other keys keep their
+  current value (or the manifest default if nothing was saved yet). Use `--es`, `--ez` or `--ei`;
+  a string is converted to boolean or integer when the manifest declares the key with that type.
+- `--ez reset true`: start from the manifest defaults instead of the current configuration.
+- `--ez restart false`: do not stop and relaunch the app (by default it is restarted so it reads
+  the new configuration).
+
+The fixed values (`MdmDeviceSerial`, `MdmDeviceName`) are always applied. The broadcast prints
+`result=1, data="OK"` on success and `result=0` with the error message otherwise; details are
+logged under the `SetManagedConfig` tag.
+
 ## Hidden apps
 
 When MDM Trianect is device or profile owner it hides preinstalled apps that are not needed on

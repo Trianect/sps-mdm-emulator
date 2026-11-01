@@ -142,6 +142,16 @@
             </intent-filter>
         </receiver>
 
+        <!-- Sets managed configurations from adb. DUMP is held by the shell, not by normal apps. -->
+        <receiver
+                android:name=".profilepolicy.apprestrictions.SetManagedConfigurationReceiver"
+                android:exported="true"
+                android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="com.trianect.mdm.action.SET_MANAGED_CONFIGURATION"/>
+            </intent-filter>
+        </receiver>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
