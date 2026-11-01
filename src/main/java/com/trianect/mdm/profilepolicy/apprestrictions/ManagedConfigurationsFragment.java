@@ -766,7 +766,17 @@ public class ManagedConfigurationsFragment extends ManageAppFragment {
           new Comparator<RestrictionEntry>() {
             @Override
             public int compare(RestrictionEntry entry1, RestrictionEntry entry2) {
+              // Keys starting with "Mdm" are listed first.
+              boolean mdm1 = isMdmKey(entry1.getKey());
+              boolean mdm2 = isMdmKey(entry2.getKey());
+              if (mdm1 != mdm2) {
+                return mdm1 ? -1 : 1;
+              }
               return entry1.getKey().compareTo(entry2.getKey());
+            }
+
+            private boolean isMdmKey(String key) {
+              return key.regionMatches(true, 0, "mdm", 0, 3);
             }
           });
       super.notifyDataSetChanged();
