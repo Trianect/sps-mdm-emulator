@@ -36,7 +36,7 @@ without using the UI. Only the adb shell can send it (the receiver requires
 adb shell am broadcast -a com.trianect.mdm.action.SET_MANAGED_CONFIGURATION \
     -n com.trianect.mdm/.profilepolicy.apprestrictions.SetManagedConfigurationReceiver \
     --es package com.trianect.strokepointer \
-    --es MdmLanguage nl --ez MdmResearchMode true
+    --es Language nl --ez InvestigationUseFeaturesEnabled true
 ```
 
 - `package` (required): `com.trianect.strokepointer` or `com.trianect.strokepointerbeta`.
