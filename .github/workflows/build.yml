@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ "master", "mdm-trianect" ]
+    branches: [ "main" ]
     tags: [ "v*" ]
     paths-ignore:
       - "CONTRIB"
@@ -10,7 +10,7 @@ on:
       - "PRIVACY"
       - "README.md"
   pull_request:
-    branches: [ "master", "mdm-trianect" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
