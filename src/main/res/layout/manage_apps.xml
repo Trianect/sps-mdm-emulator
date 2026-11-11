@@ -54,7 +54,7 @@ limitations under the License.
     <TextView
         android:id="@+id/error_message"
         android:layout_below="@id/header_view"
-        android:layout_above="@+id/load_default_button"
+        android:layout_above="@+id/manage_app_button_container"
         android:visibility="gone"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
@@ -64,23 +64,15 @@ limitations under the License.
     <ListView
             android:id="@+id/app_list_view"
             android:layout_below="@id/header_view"
-            android:layout_above="@+id/load_default_button"
+            android:layout_above="@+id/manage_app_button_container"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
             android:paddingTop="16dp"
             android:paddingBottom="4dp"
             android:scrollbarStyle="outsideInset" />
 
-    <Button
-            android:id="@id/load_default_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/manage_app_button_container"
-            android:text="@string/load_manifest_restrictions"
-            android:visibility="gone" />
-
     <LinearLayout
-            android:id="@id/manage_app_button_container"
+            android:id="@+id/manage_app_button_container"
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

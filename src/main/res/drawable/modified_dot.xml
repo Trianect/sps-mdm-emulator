@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Orange dot shown next to a setting whose value differs from the app's default. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+        android:shape="oval">
+    <solid android:color="@color/trianect_happy_mango"/>
+    <size android:width="8dp" android:height="8dp"/>
+</shape>

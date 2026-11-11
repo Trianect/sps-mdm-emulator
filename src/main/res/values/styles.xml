@@ -25,6 +25,12 @@
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
     </style>
 
+    <style name="HomeTheme" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/trianect_soft_sand</item>
+        <item name="android:statusBarColor">@color/trianect_health_green</item>
+        <item name="android:navigationBarColor">@color/trianect_health_green</item>
+    </style>
+
     <style name="DpcLoginTheme" parent="AppTheme">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
